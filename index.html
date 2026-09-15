@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Silent Hill — Piano Puzzle</title>
+<style>
+:root{
+  --bg:#12100f;
+  --wood:#35231a;
+  --wood2:#1b120e;
+  --paper:#c8bca8;
+  --paper-dark:#918575;
+  --ink:#211b17;
+  --rust:#634238;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse at center,#28221e 0%,#171412 48%,#090808 100%);
+  color:var(--paper);
+  font-family:Georgia,"Times New Roman",serif;
+}
+body:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.18;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 1px,transparent 1px 5px);
+}
+.page{
+  width:min(1100px,94vw);
+  margin:0 auto;
+  padding:35px 0 45px;
+}
+.header{
+  text-align:center;
+  margin-bottom:24px;
+}
+.header .small{
+  font-size:11px;
+  letter-spacing:.35em;
+  text-transform:uppercase;
+  opacity:.48;
+}
+.header h1{
+  margin:7px 0 0;
+  font-size:clamp(28px,5vw,48px);
+  font-weight:normal;
+  letter-spacing:.08em;
+  text-shadow:2px 2px 0 #090807;
+}
+.header .line{
+  width:180px;
+  height:1px;
+  margin:14px auto 0;
+  background:#66564a;
+  opacity:.55;
+}
+.piano{
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.035),transparent 30%),
+    linear-gradient(145deg,var(--wood),var(--wood2));
+  border:9px solid #0d0907;
+  border-radius:8px;
+  padding:20px 17px 15px;
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.7),
+    inset 0 0 0 2px #5b3b2d,
+    inset 0 0 35px rgba(0,0,0,.6);
+}
+.plate{
+  height:62px;
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #493229;
+  background:#17100d;
+  color:#a99a87;
+  font-size:13px;
+  letter-spacing:.27em;
+  text-transform:uppercase;
+  text-shadow:1px 1px #000;
+}
+.keyboard{
+  position:relative;
+  height:310px;
+  background:#080706;
+  padding:0 5px 6px;
+  border:2px solid #17100d;
+  overflow:hidden;
+}
+.white-keys{
+  height:100%;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:2px;
+}
+.key{
+  appearance:none;
+  position:relative;
+  color:#342d27;
+  cursor:pointer;
+  border:1px solid #8d806e;
+  border-radius:0 0 5px 5px;
+  background:
+    linear-gradient(90deg,#bdb19e,#e2d9c9 45%,#aaa08e);
+  box-shadow:
+    inset 0 -8px 0 rgba(60,40,25,.14),
+    inset 2px 0 rgba(255,255,255,.25);
+  font-family:Georgia,"Times New Roman",serif;
+}
+.key:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.2;
+  background:
+    repeating-linear-gradient(8deg,transparent 0 18px,rgba(80,55,35,.18) 19px 20px);
+  pointer-events:none;
+}
+.key:hover{filter:brightness(1.08)}
+.key:active,.key.pressed{
+  transform:translateY(4px);
+  box-shadow:inset 0 -3px 0 rgba(60,40,25,.12);
+}
+.black-keys{
+  position:absolute;
+  inset:0 5px auto 5px;
+  height:100%;
+  pointer-events:none;
+}
+.black{
+  pointer-events:auto;
+  position:absolute;
+  top:0;
+  height:180px;
+  width:10.2%;
+  appearance:none;
+  color:#9f9486;
+  cursor:pointer;
+  background:
+    linear-gradient(90deg,#050505,#28221e 50%,#050505);
+  border:1px solid #000;
+  border-radius:0 0 5px 5px;
+  box-shadow:0 8px 8px rgba(0,0,0,.65);
+  z-index:5;
+  font-family:Georgia,"Times New Roman",serif;
+}
+.black:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.22;
+  background:repeating-linear-gradient(-12deg,transparent 0 13px,#66594d 14px 15px);
+}
+.black:hover{filter:brightness(1.25)}
+.black:active,.black.pressed{height:184px}
+.num{
+  position:absolute;
+  bottom:12px;
+  left:0;
+  right:0;
+  font-size:13px;
+  opacity:.55;
+}
+.black .num{bottom:10px;font-size:10px;opacity:.45}
+.status{
+  min-height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  margin-top:16px;
+  color:#9e9182;
+  font-size:14px;
+  letter-spacing:.08em;
+}
+.status.success{
+  color:#d4bd91;
+  font-size:16px;
+  text-shadow:0 0 10px rgba(190,155,95,.15);
+}
+.reset{
+  display:block;
+  margin:3px auto 0;
+  padding:7px 18px;
+  border:1px solid #514138;
+  background:#1a120e;
+  color:#9d9184;
+  font-family:Georgia,"Times New Roman",serif;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-size:10px;
+}
+.reset:hover{background:#281a14}
+.info{
+  display:grid;
+  grid-template-columns:1.4fr 1fr;
+  gap:18px;
+  margin-top:20px;
+}
+.card{
+  position:relative;
+  padding:22px 24px;
+  border:1px solid #4d4036;
+  background:
+    linear-gradient(rgba(35,29,25,.94),rgba(22,18,16,.96));
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+.card:after{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border:1px solid rgba(133,113,92,.12);
+  pointer-events:none;
+}
+.card h2{
+  position:relative;
+  z-index:1;
+  margin:0 0 12px;
+  font-size:17px;
+  font-weight:normal;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#b9aa96;
+}
+.card p{
+  position:relative;
+  z-index:1;
+  margin:0 0 10px;
+  line-height:1.65;
+  font-size:13px;
+  color:#9f9589;
+}
+.card p:last-child{margin-bottom:0}
+.reference{
+  margin-top:17px;
+  text-align:center;
+  font-size:10px;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:#75685d;
+}
+.victory-player{
+  display:none;
+  margin:8px auto 14px;
+  max-width:720px;
+  padding:15px;
+  border:1px solid #5a483b;
+  background:#15100d;
+  text-align:center;
+}
+.victory-player.visible{display:block}
+.track-label{
+  color:#cbb58e;
+  font-size:10px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.track-title{
+  margin-top:6px;
+  color:#d8cdbc;
+  font-size:18px;
+}
+.track-subtitle{
+  margin:4px 0 12px;
+  color:#897c70;
+  font-size:11px;
+  letter-spacing:.08em;
+}
+.victory-player iframe{
+  display:block;
+  width:100%;
+  aspect-ratio:16/9;
+  border:0;
+}
+@media(max-width:700px){
+  .page{padding-top:20px}
+  .keyboard{height:235px}
+  .black{height:138px}
+  .black:active,.black.pressed{height:142px}
+  .info{grid-template-columns:1fr}
+  .piano{padding:14px 9px 12px}
+}
+#tears-audio { display:none; }
+</style>
+</head>
+<body>
+<main class="page">
+
+  <header class="header">
+    <div class="small">Midwich Elementary School · 1999</div>
+    <h1>SILENT HILL</h1>
+    <div class="line"></div>
+  </header>
+
+  <section class="piano" aria-label="Piano interactivo del puzzle">
+    <div class="plate">A Tale of Birds Without a Voice</div>
+
+    <div class="keyboard">
+      <div class="white-keys">
+        <button class="key" data-key="1" aria-label="Tecla 1"><span class="num">1</span></button>
+        <button class="key" data-key="3" aria-label="Tecla 3"><span class="num">3</span></button>
+        <button class="key" data-key="5" aria-label="Tecla 5"><span class="num">5</span></button>
+        <button class="key" data-key="6" aria-label="Tecla 6"><span class="num">6</span></button>
+        <button class="key" data-key="8" aria-label="Tecla 8"><span class="num">8</span></button>
+        <button class="key" data-key="10" aria-label="Tecla 10"><span class="num">10</span></button>
+        <button class="key" data-key="12" aria-label="Tecla 12"><span class="num">12</span></button>
+      </div>
+
+      <div class="black-keys">
+        <button class="black" data-key="2" style="left:9.5%" aria-label="Tecla 2"><span class="num">2</span></button>
+        <button class="black" data-key="4" style="left:23.8%" aria-label="Tecla 4"><span class="num">4</span></button>
+        <button class="black" data-key="7" style="left:52.4%" aria-label="Tecla 7"><span class="num">7</span></button>
+        <button class="black" data-key="9" style="left:66.7%" aria-label="Tecla 9"><span class="num">9</span></button>
+        <button class="black" data-key="11" style="left:81%" aria-label="Tecla 11"><span class="num">11</span></button>
+      </div>
+    </div>
+
+    <div id="status" class="status" aria-live="polite">
+      Escuchá con atención...
+    </div>
+
+    <div id="victory-player" class="victory-player" aria-live="polite"></div>
+
+    <button id="reset" class="reset" type="button">Reiniciar</button>
+  </section>
+
+  <section class="info">
+    <article class="card">
+      <h2>El puzzle</h2>
+      <p>
+        Este piano recrea el famoso acertijo de la escuela primaria Midwich,
+        de <strong>Silent Hill (1999)</strong>, el primer juego de la saga.
+      </p>
+      <p>
+        Cinco pájaros aparecen en un poema. Sus voces se han perdido y sólo
+        quedan algunas teclas del piano sin sonido. El desafío consiste en
+        descubrir cuáles son y tocarlas en el orden indicado por el acertijo.
+      </p>
+      <p>
+        Este es un homenaje interactivo al puzzle original: las teclas no
+        revelan la respuesta ni indican qué hacer.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2>Un detalle argentino</h2>
+      <p>
+        <strong>“Esperándote”</strong> es el tema de cierre asociado al
+        <strong>Bad Ending</strong> de <em>Silent Hill (1999)</em>.
+        Fue producido, compuesto y escrito por <strong>Rika Muranaka</strong>
+        y tiene la voz principal de <strong>Vanesa Quiroz</strong>.
+      </p>
+      <p>
+        Lo más curioso es que es un <strong>tango</strong>: la grabación contó
+        con bandoneones, violines, guitarra, bajo y piano, y se realizó en
+        <strong>Barracas Studio, Buenos Aires</strong>, en 1998.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2>Sobre la saga</h2>
+      <p>
+        <strong>Silent Hill</strong> nació en 1999 de la mano de Konami y
+        Team Silent para PlayStation. La serie se convirtió en uno de los
+        referentes del survival horror gracias a su atmósfera, simbolismo y
+        horror psicológico.
+      </p>
+      <p>
+        La niebla, la ciudad aparentemente abandonada, los mundos alternos y
+        sus puzzles son algunos de los elementos que se volvieron
+        característicos de la franquicia.
+      </p>
+      <p>
+        A diferencia de muchos juegos de terror, Silent Hill utiliza el miedo
+        y la incertidumbre para contar historias sobre culpa, pérdida,
+        recuerdos y aquello que los personajes intentan ocultar.
+      </p>
+    </article>
+  </section>
+
+  <div class="reference">A Tale of Birds Without a Voice · Midwich Elementary School</div>
+
+</main>
+
+<script>
+(() => {
+  const solution = ["3","10","11","8","2"];
+  const silentKeys = new Set(["2","3","8","10","11"]);
+  const frequencies = {
+    1:261.63, 2:277.18, 3:293.66, 4:311.13,
+    5:329.63, 6:349.23, 7:369.99, 8:392.00,
+    9:415.30, 10:440.00, 11:466.16, 12:493.88
+  };
+
+  let entered = [];
+  let audio = null;
+  let tearsOf = new Audio("tears_of.mp3");
+  tearsOf.preload = "auto";
+  tearsOf.volume = 1;
+
+  const status = document.getElementById("status");
+
+  function getAudio(){
+    if(!audio){
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audio.state === "suspended") audio.resume();
+    return audio;
+  }
+
+  function playNote(key){
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "triangle";
+    osc.frequency.value = frequencies[key];
+
+    gain.gain.setValueAtTime(.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.12, ctx.currentTime + .015);
+    gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + .55);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + .57);
+  }
+
+  function playSilent(){
+    const ctx = getAudio();
+    const buffer = ctx.createBuffer(
+      1,
+      Math.floor(ctx.sampleRate * .055),
+      ctx.sampleRate
+    );
+    const data = buffer.getChannelData(0);
+
+    for(let i=0;i<data.length;i++){
+      data[i] = (Math.random()*2-1) * (1-i/data.length);
+    }
+
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+
+    gain.gain.value = .13;
+    source.buffer = buffer;
+    source.connect(gain).connect(ctx.destination);
+    source.start();
+  }
+
+  function playTearsOf(){
+    tearsOf.currentTime = 0;
+    const promise = tearsOf.play();
+    if(promise) promise.catch(() => {
+      // El navegador puede bloquear reproducción automática.
+      // No mostramos ningún reproductor: se mantiene la experiencia limpia.
+    });
+  }
+
+  function stopTearsOf(){
+    tearsOf.pause();
+    tearsOf.currentTime = 0;
+  }
+
+  function press(button){
+    button.classList.add("pressed");
+    setTimeout(() => button.classList.remove("pressed"), 130);
+  }
+
+  document.querySelectorAll("[data-key]").forEach(button => {
+    button.addEventListener("click", () => {
+      const key = button.dataset.key;
+      press(button);
+
+      if(silentKeys.has(key)) playSilent();
+      else playNote(key);
+
+      const expected = solution[entered.length];
+
+      if(key !== expected){
+        entered = [];
+        status.textContent = "...";
+        status.classList.remove("success");
+        return;
+      }
+
+      entered.push(key);
+
+      if(entered.length === solution.length){
+        status.textContent = "✦ La melodía fue encontrada. Tears Of... comienza a sonar. ✦";
+        status.classList.add("success");
+
+        [3,10,11,8,2].forEach((k,i) => {
+          setTimeout(() => playNote(k), i*150);
+        });
+
+        // Reproducir el archivo local inmediatamente dentro del click ganador.
+        // No se muestra ningún reproductor ni se necesita internet.
+        const player = document.getElementById("victory-player");
+        if(player && !player.dataset.loaded){
+          player.dataset.loaded = "1";
+          player.innerHTML = `
+            <div class="track-label">✦ RECOMPENSA DESBLOQUEADA ✦</div>
+            <div class="track-title">Tears Of... — Silent Hill</div>
+            <div class="track-subtitle">Good+ Ending · Akira Yamaoka</div>
+          `;
+          player.classList.add("visible");
+        }
+
+        playTearsOf();
+
+      } else {
+        status.textContent = "...";
+      }
+    });
+  });
+
+  document.getElementById("reset").addEventListener("click", () => {
+    stopTearsOf();
+    entered = [];
+    status.textContent = "Escuchá con atención...";
+    status.classList.remove("success");
+
+    const player = document.getElementById("victory-player");
+    player.innerHTML = "";
+    player.classList.remove("visible");
+    delete player.dataset.loaded;
+  });
+})();
+</script>
+</body>
+</html>
