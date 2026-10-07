@@ -282,6 +282,70 @@ body:before{
   aspect-ratio:16/9;
   border:0;
 }
+.piano-actions{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.clues-button,.reset{
+  margin:3px 0 0;
+}
+.clues-button{
+  padding:7px 18px;
+  border:1px solid #514138;
+  background:#1a120e;
+  color:#9d9184;
+  font-family:Georgia,"Times New Roman",serif;
+  cursor:pointer;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-size:10px;
+}
+.clues-button:hover{background:#281a14}
+.clues-panel,.winner{
+  display:none;
+  margin:18px auto 0;
+  max-width:720px;
+  padding:18px 20px;
+  border:1px solid #4d4036;
+  background:linear-gradient(rgba(35,29,25,.96),rgba(22,18,16,.98));
+  text-align:left;
+}
+.clues-panel.visible,.winner.visible{display:block}
+.clues-panel h2,.winner h2{
+  margin:0 0 12px;
+  color:#c8b79f;
+  font-size:16px;
+  font-weight:normal;
+  letter-spacing:.12em;
+  text-align:center;
+  text-transform:uppercase;
+}
+.clue-poem{margin:0;color:#b1a594;line-height:1.8;font-size:13px}
+.winner{text-align:center}
+.winner p{margin:0;color:#9f9589;font-size:13px;line-height:1.5}
+.winner-form{display:flex;gap:8px;margin-top:14px}
+.winner-form input{
+  flex:1;
+  min-width:0;
+  padding:10px 12px;
+  border:1px solid #514138;
+  background:#100d0b;
+  color:#e4d9c9;
+  font-family:Georgia,"Times New Roman",serif;
+}
+.winner-form button{
+  padding:10px 16px;
+  border:1px solid #78604c;
+  background:#30231b;
+  color:#eee7dd;
+  cursor:pointer;
+  font-family:Georgia,"Times New Roman",serif;
+}
+.winner-form button:hover{background:#453328}
+.winner-message{min-height:18px;margin-top:10px;color:#c8b79f;font-size:12px}
+.local-server-note{margin:10px 0 0;color:#75685d;text-align:center;font-size:10px;line-height:1.5}
 @media(max-width:700px){
   .page{padding-top:20px}
   .keyboard{height:235px}
@@ -289,6 +353,7 @@ body:before{
   .black:active,.black.pressed{height:142px}
   .info{grid-template-columns:1fr}
   .piano{padding:14px 9px 12px}
+  .winner-form{flex-direction:column}
 }
 #tears-audio { display:none; }
 </style>
@@ -331,7 +396,37 @@ body:before{
 
     <div id="victory-player" class="victory-player" aria-live="polite"></div>
 
-    <button id="reset" class="reset" type="button">Reiniciar</button>
+    <div class="piano-actions">
+      <button id="reset" class="reset" type="button">Reiniciar</button>
+      <button id="show-clues" class="clues-button" type="button"
+              aria-expanded="false" aria-controls="clues-panel">Leer las pistas</button>
+    </div>
+
+    <section id="clues-panel" class="clues-panel" aria-labelledby="clues-title">
+      <h2 id="clues-title">Las pistas</h2>
+      <p class="clue-poem">Primero voló el avaro pelícano, ansioso de ser recompensado, moviendo sus alas blancas. <br>
+        Luego partió una silenciosa paloma, volando detrás del pelícano, aún más lejano. <br>
+        Y ahora es un cuervo, volando más alto que la paloma, para demostrar que quiere y que puede. <br>
+        Llega planeando un cisne, buscando un lugar tranquilo, al lado de un pájaro amigo. <br>
+        Finalmente llega una corneja, deteniéndose hábil y rápidamente, para dar un bostezo y dormir una siesta. ¿Quién va a señalar el camino? ¿Quién será la clave? ¿A quién habrá que seguir hasta la recompensa de plata?</p>
+    </section>
+
+    <section id="winner" class="winner" aria-labelledby="winner-title" aria-live="polite">
+      <h2 id="winner-title">✦ ¡Puzzle resuelto! ✦</h2>
+      <p>Ingresá tu nombre para registrar quién encontró la melodía.</p>
+      <form class="winner-form" id="winner-form"
+            action="https://formsubmit.co/ajax/luzrubini97@gmail.com"
+            method="POST">
+        <input type="text" name="nombre" id="winner-name" maxlength="80"
+               placeholder="Tu nombre" autocomplete="name" required>
+        <input type="hidden" name="_subject" value=" Silent Hill — Puzzle resuelto">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="resultado" value="Secuencia correcta: 3 → 10 → 11 → 8 → 2">
+        <button type="submit">Enviar</button>
+      </form>
+      <div class="winner-message" id="winner-message" aria-live="polite"></div>
+    </section>
   </section>
 
   <section class="info">
@@ -343,8 +438,7 @@ body:before{
       </p>
       <p>
         Cinco pájaros aparecen en un poema. Sus voces se han perdido y sólo
-        quedan algunas teclas del piano sin sonido. El desafío consiste en
-        descubrir cuáles son y tocarlas en el orden indicado por el acertijo.
+        quedan algunas teclas del piano sin sonido.
       </p>
       <p>
         Este es un homenaje interactivo al puzzle original: las teclas no
@@ -380,11 +474,6 @@ body:before{
         sus puzzles son algunos de los elementos que se volvieron
         característicos de la franquicia.
       </p>
-      <p>
-        A diferencia de muchos juegos de terror, Silent Hill utiliza el miedo
-        y la incertidumbre para contar historias sobre culpa, pérdida,
-        recuerdos y aquello que los personajes intentan ocultar.
-      </p>
     </article>
   </section>
 
@@ -404,11 +493,18 @@ body:before{
 
   let entered = [];
   let audio = null;
+  let pianoSoundBufferPromise = null;
   let tearsOf = new Audio("tears_of.mp3");
   tearsOf.preload = "auto";
   tearsOf.volume = 1;
 
   const status = document.getElementById("status");
+  const winner = document.getElementById("winner");
+  const winnerForm = document.getElementById("winner-form");
+  const winnerName = document.getElementById("winner-name");
+  const winnerMessage = document.getElementById("winner-message");
+  const cluesPanel = document.getElementById("clues-panel");
+  const cluesButton = document.getElementById("show-clues");
 
   function getAudio(){
     if(!audio){
@@ -433,6 +529,29 @@ body:before{
     osc.connect(gain).connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + .57);
+  }
+
+  function playPianoSound(){
+    const ctx = getAudio();
+    if(!pianoSoundBufferPromise){
+      pianoSoundBufferPromise = fetch("piano_sound.ogg")
+        .then(response => {
+          if(!response.ok){
+            throw new Error(`HTTP ${response.status}`);
+          }
+          return response.arrayBuffer();
+        })
+        .then(data => ctx.decodeAudioData(data));
+    }
+
+    pianoSoundBufferPromise.then(buffer => {
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0, 0, Math.min(1, buffer.duration));
+    }).catch(error => {
+      console.error("No se pudo reproducir piano_sound.ogg:", error);
+    });
   }
 
   function playSilent(){
@@ -482,7 +601,7 @@ body:before{
       press(button);
 
       if(silentKeys.has(key)) playSilent();
-      else playNote(key);
+      else playPianoSound();
 
       const expected = solution[entered.length];
 
@@ -516,6 +635,8 @@ body:before{
           player.classList.add("visible");
         }
 
+        winner.classList.add("visible");
+        winnerName.focus();
         playTearsOf();
 
       } else {
@@ -534,6 +655,52 @@ body:before{
     player.innerHTML = "";
     player.classList.remove("visible");
     delete player.dataset.loaded;
+    winner.classList.remove("visible");
+    winnerForm.reset();
+    winnerMessage.textContent = "";
+  });
+
+  cluesButton.addEventListener("click", () => {
+    const isVisible = cluesPanel.classList.toggle("visible");
+    cluesButton.textContent = isVisible ? "Ocultar las pistas" : "Leer las pistas";
+    cluesButton.setAttribute("aria-expanded", String(isVisible));
+  });
+
+  winnerForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    const name = winnerName.value.trim();
+    if(!name){
+      winnerMessage.textContent = "Escribí tu nombre.";
+      winnerName.focus();
+      return;
+    }
+
+    winnerName.value = name;
+    const submitButton = winnerForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.textContent = "Enviando...";
+    winnerMessage.textContent = "";
+
+    try{
+      const response = await fetch(winnerForm.action, {
+        method: "POST",
+        headers: {Accept: "application/json"},
+        body: new FormData(winnerForm)
+      });
+      const result = await response.json();
+      if(!response.ok || (result.success !== true && result.success !== "true")){
+        throw new Error(result.message || `HTTP ${response.status}`);
+      }
+
+      winnerForm.reset();
+      winnerMessage.textContent = "¡Listo! Tu nombre fue enviado.";
+    }catch(error){
+      console.error("No se pudo enviar el registro del ganador:", error);
+      winnerMessage.textContent = "No se pudo enviar. Revisá tu conexión e intentá nuevamente.";
+    }finally{
+      submitButton.disabled = false;
+      submitButton.textContent = "Enviar";
+    }
   });
 })();
 </script>
