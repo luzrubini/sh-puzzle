@@ -74,29 +74,6 @@ python -m http.server 8000
 
 Después abrí <http://localhost:8000>.
 
-## Publicarlo con GitHub Pages
-
-1. Subí `index.html`, `piano_sound.ogg` y `tears_of.mp3` a la raíz de un
-   repositorio de GitHub.
-2. En el repositorio, entrá a **Settings → Pages**.
-3. En **Build and deployment**, elegí **Deploy from a branch**, seleccioná
-   `main` y la carpeta `/(root)`, y guardá.
-4. Cuando GitHub termine la publicación, abrí la URL que aparece en esa misma
-   sección de Pages.
-
-GitHub Pages sirve el sitio por HTTPS; no hace falta usar el archivo `.bat`
-cuando se visita la versión publicada. No subas `.venv` al repositorio: no es
-necesario para este sitio estático.
-
-## Archivos principales
-
-| Archivo | Para qué sirve |
-| --- | --- |
-| `index.html` | Interfaz, poema, lógica del acertijo y formulario |
-| `piano_sound.ogg` | Sonido de las teclas con voz |
-| `tears_of.mp3` | Audio de recompensa |
-| `iniciar_juego.bat` | Servidor local sencillo para Windows |
-
 ## Créditos y contexto
 
 **Silent Hill** es una obra de Konami y Team Silent. Este proyecto es un
